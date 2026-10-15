@@ -10,7 +10,35 @@
     <header>
       <h1>Mergington High School</h1>
       <h2>Extracurricular Activities</h2>
+      <div class="header-actions">
+        <button id="teacher-login-button" type="button" aria-label="Teacher login" title="Teacher login">
+          <span aria-hidden="true">&#128100;</span>
+        </button>
+        <div id="teacher-session" class="teacher-session" hidden>
+          <span>Teacher signed in</span>
+          <button id="teacher-logout-button" type="button">Log out</button>
+        </div>
+      </div>
     </header>
+
+    <dialog id="teacher-login-dialog" aria-labelledby="teacher-login-title">
+      <form id="teacher-login-form">
+        <h3 id="teacher-login-title">Teacher login</h3>
+        <div class="form-group">
+          <label for="teacher-username">Username:</label>
+          <input id="teacher-username" name="username" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="teacher-password">Password:</label>
+          <input id="teacher-password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <p id="login-message" class="login-message hidden" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="teacher-login-cancel" type="button">Cancel</button>
+          <button type="submit">Log in</button>
+        </div>
+      </form>
+    </dialog>
 
     <main>
       <section id="activities-container">
@@ -21,7 +49,7 @@
         </div>
       </section>
 
-      <section id="signup-container">
+      <section id="signup-container" hidden>
         <h3>Sign Up for an Activity</h3>
         <form id="signup-form">
           <div class="form-group">

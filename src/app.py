@@ -5,11 +5,13 @@ A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
 from pathlib import Path
+from teacher_auth import create_session, require_teacher, revoke_session, verify_teacher_credentials
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
@@ -18,6 +20,26 @@ app = FastAPI(title="Mergington High School API",
 current_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
+
+
+class TeacherLogin(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/auth/login")
+def teacher_login(credentials: TeacherLogin):
+    if not verify_teacher_credentials(credentials.username, credentials.password):
+        raise HTTPException(status_code=401, detail="Invalid teacher credentials")
+
+    token = create_session(credentials.username)
+    return {"access_token": token, "token_type": "bearer", "expires_in": 28800}
+
+
+@app.post("/auth/logout")
+def teacher_logout(token: str = Depends(require_teacher)):
+    revoke_session(token)
+    return {"message": "Logged out"}
 
 # In-memory activity database
 activities = {
@@ -89,7 +111,7 @@ def get_activities():
 
 
 @app.post("/activities/{activity_name}/signup")
-def signup_for_activity(activity_name: str, email: str):
+def signup_for_activity(activity_name: str, email: str, _: str = Depends(require_teacher)):
     """Sign up a student for an activity"""
     # Validate activity exists
     if activity_name not in activities:
@@ -111,7 +133,7 @@ def signup_for_activity(activity_name: str, email: str):
 
 
 @app.delete("/activities/{activity_name}/unregister")
-def unregister_from_activity(activity_name: str, email: str):
+def unregister_from_activity(activity_name: str, email: str, _: str = Depends(require_teacher)):
     """Unregister a student from an activity"""
     # Validate activity exists
     if activity_name not in activities:
